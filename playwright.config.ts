@@ -17,6 +17,7 @@ export default defineConfig({
   testDir: "./playwright",
   /* Run tests in files in parallel */
   fullyParallel: true,
+  globalSetup: require.resolve("./playwright/global-setup.ts"),
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   testMatch: "**/*.e2e.ts",
@@ -35,17 +36,8 @@ export default defineConfig({
   projects: [
     // Setup project
     {
-      name: "setup mock dependencies",
-      testMatch: /global.setup.ts/,
-    },
-    {
-      name: "cleanup mock dependencies",
-      testMatch: /global\.teardown\.ts/,
-    },
-    {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
-      dependencies: ["setup mock dependencies"],
     },
   ],
   /* Run your local dev server before starting the tests */

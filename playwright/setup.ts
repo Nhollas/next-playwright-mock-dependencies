@@ -1,11 +1,12 @@
 import { createServer, Server } from "http"
 import { AddressInfo } from "net"
 import { parse } from "url"
+import path from "path"
 
 import next from "next"
 
 export const setupNextServer = async () => {
-  const app = next({ dev: false, dir: "next-mocked-build" })
+  const app = next({ dev: false, dir: path.join(__dirname, "temp") })
   const handle = app.getRequestHandler()
 
   await app.prepare()
