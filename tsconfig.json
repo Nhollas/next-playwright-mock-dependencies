@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
+    "target": "es2015",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -10,8 +12,11 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "noUncheckedIndexedAccess": true,
+    "allowImportingTsExtensions": true,
     "jsx": "preserve",
     "incremental": true,
+    "types": ["vitest/globals"],
     "plugins": [
       {
         "name": "next"
@@ -21,6 +26,14 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "vitest.setup.mts",
+    "vitest.config.mts"
+  ],
+  "exclude": ["node_modules"],
+  "files": ["vitest.setup.mts"]
 }
