@@ -5,14 +5,9 @@ import { exec } from "child_process"
 const rootFilesToCopy = [
   "tsconfig.json",
   "package.json",
-  "package-lock.json",
   "next.config.mjs",
   "public",
   ".env.local",
-  "next-env.d.ts",
-  "tailwind.config.ts",
-  "postcss.config.mjs",
-  ".gitignore",
 ]
 
 import { chromium, type FullConfig } from "@playwright/test"
