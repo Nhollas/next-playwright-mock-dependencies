@@ -1,34 +1,32 @@
 import path from "path"
 
-import { applicationFactory } from "./applicationFactory"
+import { projectCloner } from "./projectCloner"
 
 const mirrorBuildDir: string = path.join(__dirname, "builds/mirror")
 export const finalBuildDir: string = path.join(__dirname, "builds/final")
 
 const globalSetup = async (): Promise<void> => {
-  const { isCurrentBuildOutdated } = await applicationFactory()
-    .setTargetDir(mirrorBuildDir)
-    .create()
+  const mirrorBuild = await projectCloner().setTargetDir(mirrorBuildDir).clone()
 
-  const { factory: finalBuild } = await applicationFactory()
+  const finalBuild = await projectCloner()
     .setTargetDir(finalBuildDir)
-    .create()
+    .clone(true)
 
-  await finalBuild
+  await finalBuild.builder
     .setupMock("src/components/PaymentProvider.tsx")
     .replacePartialContent(
       'import("./Braintree")',
       'import("./MockedBraintree")',
     )
 
-  await finalBuild
+  await finalBuild.builder
     .setupMock("src/lib/braintree.ts")
     .replaceContent(
       `export async function getClientToken() { return "mockClientToken" }`,
     )
 
-  if (isCurrentBuildOutdated) {
-    await finalBuild.build()
+  if (mirrorBuild.isCurrentBuildOutdated) {
+    await finalBuild.builder.build()
   } else {
     console.log("No changes detected. Skipping `npm run build`")
   }

@@ -18,20 +18,16 @@ const appFilesToCopy: string[] = [
   "vitest.setup.mts",
 ]
 
-export const applicationFactory = () => {
+export const projectCloner = () => {
   let targetDir: string
-
   let excludedFilePaths: string[] = []
 
-  let isCurrentBuildOutdated: boolean = false
-
-  const factory = {
+  const builder = {
     setupMock: (file: string) => {
       excludedFilePaths.push(path.join(applicationDir, file))
 
       const replacePartialContent = async (
         searchValue: RegExp | string,
-
         replaceValue: string,
       ) => {
         const filePath = path.join(targetDir, file)
@@ -43,7 +39,6 @@ export const applicationFactory = () => {
 
       const replaceContent = async (content: string) => {
         const filePath = path.join(targetDir, file)
-
         await fs.writeFile(filePath, content)
       }
 
@@ -52,10 +47,8 @@ export const applicationFactory = () => {
         replaceContent,
       }
     },
-    isCurrentBuildOutdated,
     build: async () => {
       console.log("Running `npm run build` ...")
-
       return new Promise<void>((resolve, reject) => {
         exec("npm run build", { cwd: targetDir }, (error, stdout, stderr) => {
           if (error) {
@@ -72,9 +65,8 @@ export const applicationFactory = () => {
 
   const self = {
     setTargetDir: (targetDir: string) => {
-      const factory = applicationFactory()
+      const factory = projectCloner()
       factory.setDir(targetDir)
-
       return factory
     },
 
@@ -86,7 +78,6 @@ export const applicationFactory = () => {
 
       const replacePartialContent = async (
         searchValue: RegExp | string,
-
         replaceValue: string,
       ) => {
         const filePath = path.join(targetDir, file)
@@ -108,17 +99,18 @@ export const applicationFactory = () => {
       }
     },
 
-    create: async () => {
+    clone: async (silent: boolean = false) => {
       await fs.ensureDir(targetDir)
 
       const result: boolean[] = await Promise.all(
         appFilesToCopy.map(async (file) => {
           const srcPath = path.join(applicationDir, file)
           const destPath = path.join(targetDir, file)
-
           const { changed, path: source } = await hasChanged(srcPath, destPath)
+
           if (changed) {
-            console.log(`Detected change at ${source}, updating copy.`)
+            if (!silent)
+              console.log(`Detected change at ${source}, updating copy.`)
             await fs.copy(srcPath, destPath)
             return true
           }
@@ -126,11 +118,7 @@ export const applicationFactory = () => {
         }),
       )
 
-      console.log("result", result)
-
-      isCurrentBuildOutdated = result.some((value) => value)
-
-      return { isCurrentBuildOutdated, factory }
+      return { isCurrentBuildOutdated: result.some((value) => value), builder }
     },
   }
 
