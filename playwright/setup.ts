@@ -1,12 +1,12 @@
 import { createServer, Server } from "http"
 import { AddressInfo } from "net"
 import { parse } from "url"
-import path from "path"
 
 import next from "next"
+import { mirrorDir } from "./global-setup"
 
 export const setupNextServer = async () => {
-  const app = next({ dev: false, dir: path.join(__dirname, "temp") })
+  const app = next({ dev: false, dir: mirrorDir })
   const handle = app.getRequestHandler()
 
   await app.prepare()
