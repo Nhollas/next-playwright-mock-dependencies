@@ -13,8 +13,6 @@ const rootFilesToCopy = [
   "tailwind.config.ts",
   "postcss.config.mjs",
   ".gitignore",
-  "vitest.config.mts",
-  "vitest.setup.mts",
 ]
 
 import { chromium, type FullConfig } from "@playwright/test"
@@ -46,6 +44,47 @@ async function globalSetup(config: FullConfig) {
       'import("./MockedBraintree")',
     )
     await fs.writeFile(filePath, fileContent)
+
+    // Step 3.5: Modify tsconfig
+
+    const testTsConfig = `{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "target": "es2015",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noUncheckedIndexedAccess": true,
+    "allowImportingTsExtensions": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": ["node_modules"]
+}`
+
+    const tsConfigFilePath = path.join(tempDir, "tsconfig.json")
+    await fs.writeFile(tsConfigFilePath, testTsConfig)
 
     // Step 4: Run `npm run build` to create a build based on the modified files
     await new Promise((resolve, reject) => {
