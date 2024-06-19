@@ -109,13 +109,13 @@ export const applicationFactory = () => {
   let _targetDirectory: string
 
   const builder = {
-    clone: async (targetDirectory: string) => {
-      await fs.remove(targetDirectory)
-      await fs.ensureDir(targetDirectory)
+    clone: async ({ outputDir }: { outputDir: string }) => {
+      const currentTargetDir = _targetDirectory
+      _targetDirectory = path.join(__dirname, outputDir)
 
-      await fs.copy(_targetDirectory, targetDirectory)
-
-      _targetDirectory = targetDirectory
+      await fs.remove(_targetDirectory)
+      await fs.ensureDir(_targetDirectory)
+      await fs.copy(currentTargetDir, _targetDirectory)
 
       return builder
     },
@@ -165,8 +165,8 @@ export const applicationFactory = () => {
   }
 
   const self = {
-    create: async (targetDirectory: string) => {
-      _targetDirectory = targetDirectory
+    create: async ({ outputDir }: { outputDir: string }) => {
+      _targetDirectory = path.join(__dirname, outputDir)
       await fs.ensureDir(_targetDirectory)
 
       const [srcFilePaths, destFilePaths] = await Promise.all([

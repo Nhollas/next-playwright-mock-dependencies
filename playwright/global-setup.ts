@@ -1,20 +1,12 @@
-import path from "path"
-
 import { applicationFactory } from "./applicationFactory"
 
-const baseAppBuildDirectory: string = path.join(__dirname, "builds/base")
-export const mockedAppBuildDirectory: string = path.join(
-  __dirname,
-  "builds/mocked",
-)
-
 const globalSetup = async (): Promise<void> => {
-  const baseApplication = await applicationFactory().create(
-    baseAppBuildDirectory,
-  )
-  const clonedAppWithMockedDependencies = await baseApplication.clone(
-    mockedAppBuildDirectory,
-  )
+  const baseApplication = await applicationFactory().create({
+    outputDir: "builds/base",
+  })
+  const clonedAppWithMockedDependencies = await baseApplication.clone({
+    outputDir: "builds/mocked",
+  })
 
   await clonedAppWithMockedDependencies
     .editFile("src/components/PaymentProvider.tsx")
