@@ -4,8 +4,8 @@ import { parse } from "url"
 
 import next from "next"
 
-export const setupNextServer = async (dir: string) => {
-  const app = next({ dev: false, dir })
+export const setupNextServer = async () => {
+  const app = next({ dev: false })
   const handle = app.getRequestHandler()
 
   await app.prepare()

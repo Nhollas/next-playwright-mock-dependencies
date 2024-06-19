@@ -2,7 +2,9 @@ import fs from "fs-extra"
 
 import path from "path"
 
-import { exec } from "child_process"
+import util from "node:util"
+
+const exec = util.promisify(require("node:child_process").exec)
 
 const applicationDir = path.join(__dirname, "../")
 
@@ -141,21 +143,20 @@ export const applicationFactory = () => {
     },
     build: async () => {
       console.log("Running `npm run build` ...")
-      return new Promise<void>((resolve, reject) => {
-        exec(
-          "npm run build",
-          { cwd: _targetDirectory },
-          (error, stdout, stderr) => {
-            if (error) {
-              console.error(`Build failed: ${stderr}`)
-              reject(error)
-            } else {
-              console.log(`Build success: ${stdout}`)
-              resolve()
-            }
-          },
-        )
+
+      const { stdout, stderr } = await exec("npm run build", {
+        cwd: _targetDirectory,
       })
+
+      if (stderr) {
+        console.error(stderr)
+      }
+      console.log(stdout)
+
+      const srcDir = path.join(_targetDirectory, ".next")
+      const destDir = path.join(applicationDir, ".next")
+
+      await fs.move(srcDir, destDir, { overwrite: true })
     },
   }
 
@@ -193,10 +194,13 @@ export const applicationFactory = () => {
         }),
       )
 
-      const isCurrentBuildOutdated =
-        hasAnyFileChanged || filesToRemove.length > 0
+      const currentBuildExists = await fs.pathExists(
+        path.join(applicationDir, ".next"),
+      )
+      const isCurrentBuildValid =
+        hasAnyFileChanged || filesToRemove.length > 0 || !currentBuildExists
 
-      return { ...builder, isCurrentBuildOutdated }
+      return { ...builder, isCurrentBuildValid }
     },
   }
 
