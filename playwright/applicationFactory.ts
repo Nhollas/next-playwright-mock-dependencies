@@ -58,6 +58,7 @@ export const getAllFilePaths = async (
 export const syncFile = async (
   source: string,
   destination: string,
+  targetDirectory: string,
 ): Promise<{ hasFileChanged: boolean }> => {
   try {
     const [srcExists, destExists] = await Promise.all([
@@ -65,10 +66,13 @@ export const syncFile = async (
       fs.pathExists(destination),
     ])
 
+    // Calculate the relative path for logging
+    const relativeDestPath = path.relative(targetDirectory, destination)
+
     if (!srcExists && destExists) {
       // Source file or directory was deleted
       console.log(
-        `Removing ${destination} as it no longer exists in the source.`,
+        `Removing \`${relativeDestPath}\` as it no longer exists in the source.`,
       )
       await fs.remove(destination)
       return { hasFileChanged: true }
@@ -77,7 +81,7 @@ export const syncFile = async (
     if (srcExists && !destExists) {
       // Destination file or directory does not exist
       await fs.copy(source, destination)
-      console.log(`Creating ${destination} as it does not exist.`)
+      console.log(`Creating \`${relativeDestPath}\` as it does not exist.`)
       return { hasFileChanged: true }
     }
 
@@ -89,7 +93,7 @@ export const syncFile = async (
 
       if (srcContent !== destContent) {
         await fs.copy(source, destination)
-        console.log(`Updating ${destination} as it has changed.`)
+        console.log(`Updating \`${relativeDestPath}\` as it has changed.`)
         return { hasFileChanged: true }
       }
     }
@@ -111,7 +115,7 @@ export const applicationFactory = () => {
   const builder = {
     clone: async ({ outputDir }: { outputDir: string }) => {
       const currentTargetDir = _targetDirectory
-      _targetDirectory = path.join(__dirname, outputDir)
+      _targetDirectory = path.join(applicationDir, outputDir)
 
       await fs.remove(_targetDirectory)
       await fs.ensureDir(_targetDirectory)
@@ -166,7 +170,7 @@ export const applicationFactory = () => {
 
   const self = {
     create: async ({ outputDir }: { outputDir: string }) => {
-      _targetDirectory = path.join(__dirname, outputDir)
+      _targetDirectory = path.join(applicationDir, outputDir)
       await fs.ensureDir(_targetDirectory)
 
       const [srcFilePaths, destFilePaths] = await Promise.all([
@@ -179,7 +183,7 @@ export const applicationFactory = () => {
           const srcPath = path.join(applicationDir, file)
           const destPath = path.join(_targetDirectory, file)
 
-          return await syncFile(srcPath, destPath)
+          return await syncFile(srcPath, destPath, _targetDirectory)
         }),
       ).then((results) => results.some((r) => r.hasFileChanged))
 
@@ -191,8 +195,10 @@ export const applicationFactory = () => {
       await Promise.all(
         filesToRemove.map(async (file) => {
           await fs.remove(file)
+
+          const relativePath = path.relative(_targetDirectory, file)
           console.log(
-            `Removed ${file} from destination as it no longer exists in source.`,
+            `Removed ${relativePath} from destination as it no longer exists in source.`,
           )
         }),
       )

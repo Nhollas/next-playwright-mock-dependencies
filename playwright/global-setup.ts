@@ -2,10 +2,10 @@ import { applicationFactory } from "./applicationFactory"
 
 const globalSetup = async (): Promise<void> => {
   const baseApplication = await applicationFactory().create({
-    outputDir: "builds/base",
+    outputDir: "playwright/builds/base",
   })
   const clonedAppWithMockedDependencies = await baseApplication.clone({
-    outputDir: "builds/mocked",
+    outputDir: "playwright/builds/mocked",
   })
 
   await clonedAppWithMockedDependencies
