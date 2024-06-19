@@ -2,6 +2,7 @@ import { test as base } from "@playwright/test"
 
 import { setupNextServer } from "../setup"
 import { buildLocalUrl, createTestUtils } from "../utils"
+import { finalBuildDir } from "playwright/global-setup"
 
 export const test = base.extend<
   {
@@ -21,7 +22,7 @@ export const test = base.extend<
   },
   port: [
     async ({}, use) => {
-      const port = await setupNextServer()
+      const port = await setupNextServer(finalBuildDir)
 
       await use(port)
     },

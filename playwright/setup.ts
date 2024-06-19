@@ -3,10 +3,9 @@ import { AddressInfo } from "net"
 import { parse } from "url"
 
 import next from "next"
-import { finalBuildDir } from "./global-setup"
 
-export const setupNextServer = async () => {
-  const app = next({ dev: false, dir: finalBuildDir })
+export const setupNextServer = async (dir: string) => {
+  const app = next({ dev: false, dir })
   const handle = app.getRequestHandler()
 
   await app.prepare()

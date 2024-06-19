@@ -18,7 +18,7 @@ const appFilesToCopy: string[] = [
   "vitest.setup.mts",
 ]
 
-export const projectCloner = () => {
+export const application = () => {
   let targetDir: string
   let excludedFilePaths: string[] = []
 
@@ -65,7 +65,7 @@ export const projectCloner = () => {
 
   const self = {
     setTargetDir: (targetDir: string) => {
-      const factory = projectCloner()
+      const factory = application()
       factory.setDir(targetDir)
       return factory
     },
@@ -118,7 +118,9 @@ export const projectCloner = () => {
         }),
       )
 
-      return { isCurrentBuildOutdated: result.some((value) => value), builder }
+      const isCurrentBuildOutdated = result.some((r) => r)
+
+      return { ...builder, isCurrentBuildOutdated }
     },
   }
 
