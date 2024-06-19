@@ -144,6 +144,7 @@ export const applicationFactory = () => {
     build: async () => {
       console.log("Running `npm run build` ...")
 
+      const startTime = Date.now()
       const { stdout, stderr } = await exec("npm run build", {
         cwd: _targetDirectory,
       })
@@ -157,6 +158,9 @@ export const applicationFactory = () => {
       const destDir = path.join(applicationDir, ".next")
 
       await fs.move(srcDir, destDir, { overwrite: true })
+
+      const endTime = Date.now()
+      console.log(`Build completed in ${endTime - startTime}ms.`)
     },
   }
 
@@ -170,15 +174,14 @@ export const applicationFactory = () => {
         getAllFilePaths([_targetDirectory]),
       ])
 
-      const hasAnyFileChanged = await Promise.all(
+      const haveAnyFilesChanged = await Promise.all(
         srcFilePaths.map(async (file) => {
           const srcPath = path.join(applicationDir, file)
           const destPath = path.join(_targetDirectory, file)
 
-          const { hasFileChanged } = await syncFile(srcPath, destPath)
-          return hasFileChanged
+          return await syncFile(srcPath, destPath)
         }),
-      ).then((results) => results.some((r) => r))
+      ).then((results) => results.some((r) => r.hasFileChanged))
 
       const filesToRemove = destFilePaths.filter(
         (file) =>
@@ -198,7 +201,7 @@ export const applicationFactory = () => {
         path.join(applicationDir, ".next"),
       )
       const isCurrentBuildValid =
-        hasAnyFileChanged || filesToRemove.length > 0 || !currentBuildExists
+        haveAnyFilesChanged || filesToRemove.length > 0 || !currentBuildExists
 
       return { ...builder, isCurrentBuildValid }
     },
