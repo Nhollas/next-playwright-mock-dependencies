@@ -6,11 +6,9 @@ const mirrorBuildDir: string = path.join(__dirname, "builds/mirror")
 export const finalBuildDir: string = path.join(__dirname, "builds/final")
 
 const globalSetup = async (): Promise<void> => {
-  const mirrorApp = await application().setTargetDir(mirrorBuildDir).clone()
+  const mirrorApp = await application().setTargetDir(mirrorBuildDir).create()
 
-  const finalizedApp = await application()
-    .setTargetDir(finalBuildDir)
-    .clone(true)
+  const finalizedApp = await mirrorApp.clone(finalBuildDir)
 
   await finalizedApp
     .setupMock("src/components/PaymentProvider.tsx")
