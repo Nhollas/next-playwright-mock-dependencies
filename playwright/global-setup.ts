@@ -1,30 +1,34 @@
 import path from "path"
 
-import { application } from "./application"
+import { applicationFactory } from "./applicationFactory"
 
-const mirrorBuildDir: string = path.join(__dirname, "builds/mirror")
-export const finalBuildDir: string = path.join(__dirname, "builds/final")
+const baseAppDir: string = path.join(__dirname, "builds/base")
+export const mockAppDir: string = path.join(__dirname, "builds/mocked")
 
 const globalSetup = async (): Promise<void> => {
-  const mirrorApp = await application().setTargetDir(mirrorBuildDir).create()
+  const baseApplication = await applicationFactory()
+    .setTargetDir(baseAppDir)
+    .create()
 
-  const finalizedApp = await mirrorApp.clone(finalBuildDir)
+  const applicationWithMockedDependencies = await baseApplication.clone(
+    mockAppDir,
+  )
 
-  await finalizedApp
-    .setupMock("src/components/PaymentProvider.tsx")
+  await applicationWithMockedDependencies
+    .editFile("src/components/PaymentProvider.tsx")
     .replacePartialContent(
       'import("./Braintree")',
       'import("./MockedBraintree")',
     )
 
-  await finalizedApp
-    .setupMock("src/lib/braintree.ts")
+  await applicationWithMockedDependencies
+    .editFile("src/lib/braintree.ts")
     .replaceContent(
       `export async function getClientToken() { return "mockClientToken" }`,
     )
 
-  if (mirrorApp.isCurrentBuildOutdated) {
-    await finalizedApp.build()
+  if (baseApplication.isCurrentBuildOutdated) {
+    await applicationWithMockedDependencies.build()
   } else {
     console.log("No changes detected. Skipping `npm run build`")
   }
