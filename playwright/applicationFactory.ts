@@ -1,10 +1,6 @@
 import fs from "fs-extra"
-
 import path from "path"
-
-import util from "node:util"
-
-const exec = util.promisify(require("node:child_process").exec)
+import { spawn } from "child_process"
 
 const applicationDir = path.join(__dirname, "../")
 
@@ -146,25 +142,33 @@ export const applicationFactory = () => {
       }
     },
     build: async () => {
+      console.log()
       console.log("Running `npm run build` ...")
 
       const startTime = Date.now()
-      const { stdout, stderr } = await exec("npm run build", {
+
+      const buildProcess = spawn("npm", ["run", "build"], {
         cwd: _targetDirectory,
+        stdio: "inherit", // This will inherit stdio from the parent, streaming output in real-time
+        shell: true, // For Windows compatibility
       })
 
-      if (stderr) {
-        console.error(stderr)
-      }
-      console.log(stdout)
+      // Wait for the build process to complete
+      await new Promise((resolve, reject) => {
+        buildProcess.on("close", (code) => {
+          if (code === 0) {
+            console.log(`Build completed in ${Date.now() - startTime}ms.`)
+            resolve(code)
+          } else {
+            reject(new Error(`Build failed with code ${code}`))
+          }
+        })
+      })
 
       const srcDir = path.join(_targetDirectory, ".next")
       const destDir = path.join(applicationDir, ".next")
 
       await fs.move(srcDir, destDir, { overwrite: true })
-
-      const endTime = Date.now()
-      console.log(`Build completed in ${endTime - startTime}ms.`)
     },
   }
 
