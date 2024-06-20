@@ -2,9 +2,9 @@ import fs from "fs-extra"
 import path from "path"
 import { spawn } from "child_process"
 
-const applicationDir = path.join(__dirname, "../")
+const rootPath = path.join(__dirname, "../")
 
-const appPathsToCopy: string[] = [
+const sourcePathsToCopy: string[] = [
   "package.json",
   "next.config.mjs",
   "public",
@@ -111,7 +111,7 @@ export const applicationFactory = () => {
   const builder = {
     clone: async ({ outputDir }: { outputDir: string }) => {
       const currentTargetDir = _targetDirectory
-      _targetDirectory = path.join(applicationDir, outputDir)
+      _targetDirectory = path.join(rootPath, outputDir)
 
       await fs.remove(_targetDirectory)
       await fs.ensureDir(_targetDirectory)
@@ -146,7 +146,6 @@ export const applicationFactory = () => {
       console.log("Running `npm run build` ...")
 
       const startTime = Date.now()
-
       const buildProcess = spawn("npm", ["run", "build"], {
         cwd: _targetDirectory,
         stdio: "inherit", // This will inherit stdio from the parent, streaming output in real-time
@@ -166,7 +165,7 @@ export const applicationFactory = () => {
       })
 
       const srcDir = path.join(_targetDirectory, ".next")
-      const destDir = path.join(applicationDir, ".next")
+      const destDir = path.join(rootPath, ".next")
 
       await fs.move(srcDir, destDir, { overwrite: true })
     },
@@ -174,17 +173,17 @@ export const applicationFactory = () => {
 
   const self = {
     create: async ({ outputDir }: { outputDir: string }) => {
-      _targetDirectory = path.join(applicationDir, outputDir)
+      _targetDirectory = path.join(rootPath, outputDir)
       await fs.ensureDir(_targetDirectory)
 
       const [srcFilePaths, destFilePaths] = await Promise.all([
-        getAllFilePaths(appPathsToCopy),
+        getAllFilePaths(sourcePathsToCopy),
         getAllFilePaths([_targetDirectory]),
       ])
 
       const haveAnyFilesChanged = await Promise.all(
         srcFilePaths.map(async (file) => {
-          const srcPath = path.join(applicationDir, file)
+          const srcPath = path.join(rootPath, file)
           const destPath = path.join(_targetDirectory, file)
 
           return await syncFile(srcPath, destPath, _targetDirectory)
@@ -208,7 +207,7 @@ export const applicationFactory = () => {
       )
 
       const currentBuildExists = await fs.pathExists(
-        path.join(applicationDir, ".next"),
+        path.join(rootPath, ".next"),
       )
       const isCurrentBuildValid =
         haveAnyFilesChanged || filesToRemove.length > 0 || !currentBuildExists
