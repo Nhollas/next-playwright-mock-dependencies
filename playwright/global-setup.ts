@@ -21,7 +21,7 @@ const globalSetup = async (): Promise<void> => {
       `export async function getClientToken() { return "mockClientToken" }`,
     )
 
-  if (baseApplication.isCurrentBuildValid) {
+  if (baseApplication.isCurrentBuildOutdated) {
     await clonedAppWithMockedDependencies.build()
   } else {
     console.log("No changes detected. Skipping `npm run build`")

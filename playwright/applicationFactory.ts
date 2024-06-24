@@ -209,10 +209,10 @@ export const applicationFactory = () => {
       const currentBuildExists = await fs.pathExists(
         path.join(rootPath, ".next"),
       )
-      const isCurrentBuildValid =
+      const isCurrentBuildOutdated =
         haveAnyFilesChanged || filesToRemove.length > 0 || !currentBuildExists
 
-      return { ...builder, isCurrentBuildValid }
+      return { ...builder, isCurrentBuildOutdated }
     },
   }
 
